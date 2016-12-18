@@ -4,6 +4,7 @@ just for fun
 
 * need library:  
 [urllib3](https://urllib3.readthedocs.io/en/latest/): `pip3 install urllib3 `  
+(if used CentOS, may be need `yum install libxml2-devel libxslt-devel`, `pip3 install lxml`)  
 [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/): `pip3 install beautifulsoup4`  
 
 ***
