@@ -5,8 +5,10 @@ just for fun
 * need library:  
 [urllib3](https://urllib3.readthedocs.io/en/latest/): `pip3 install urllib3 `  
 [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/): `pip3 install beautifulsoup4 html5lib`  
+(if you used CentOS and want use lxml, may you need `yum install libxml2-devel libxslt-devel`, `pip3 install lxml`)  
 
 ***
+
 >**osen.py**  
 
 Spider for [Osen](http://www.onsen.ag/program/home/)  
