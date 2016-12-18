@@ -62,7 +62,7 @@ def get_info(page_json):
 
 def get_guest(homepage):
     html = urllib3.PoolManager().request('GET', homepage)
-    soup = BeautifulSoup(html.data, 'lxml')
+    soup = BeautifulSoup(html.data, 'html5lib')
     info = soup.find(id='home')
     guest = info['data-guest']
     return guest
