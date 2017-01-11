@@ -12,8 +12,8 @@ import re
 
 ###################################
 # parameter
-id_list = {'home':{'info_file_name':'info_home.md', 'save_name':'Home'},
-        'otomain':{'info_file_name':'info_otomain.md', 'save_name':'Otomain'}}
+id_list = {'home':{'info_file_name':'info_home.md', 'save_name':'Home', 'subpath':'homeraji/'},
+        'otomain':{'info_file_name':'info_otomain.md', 'save_name':'Otomain', 'subpath':'otomain/'}}
 
 save_path = './test/'
 log_file_name = 'osen_spider.log'
@@ -122,14 +122,14 @@ class Spider(object):
         while True:
             logging.debug('awake')
 
-            if time.strftime("%H") == '10':
+            if time.strftime("%H") == '18':
                 logging.info('scan')
 
                 for bangumi_id in self.id_list:
                     info = self.get_info(bangumi_id)
                     if flag[bangumi_id]['count'] != info['count']:
                         audio = urllib3.PoolManager().request('GET', info['download']).data
-                        save_name = self.id_list[bangumi_id]['save_name'] + info['count'] + '.mp3'
+                        save_name = self.id_list[bangumi_id]['subpath'] + self.id_list[bangumi_id]['save_name'] + info['count'] + '.mp3'
                         self.save_files(file_data=audio, file_name=save_name)
                         self.add_info(info=info, bangumi_id=bangumi_id)
                         print("add new file: %s at %s" % (save_name, time.strftime("%Y/%m/%d (%A) - %H:%M:%S")))
