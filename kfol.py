@@ -2,6 +2,7 @@ import requests
 import json
 import time
 import logging
+import re
 from bs4 import BeautifulSoup
 
 
@@ -10,15 +11,16 @@ PW = "---------"
 
 try:
     with open('kfol_cookies_' + ID + '.json', 'r') as f:
-        COOKIES = json.loads(f.read())
+        COOKIES = requests.utils.cookiejar_from_dict(json.loads(f.read()))
 except IOError:
     COOKIES = None
 
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s]   \t %(asctime)s \t%(message)s\t',
                     datefmt='%Y/%m/%d (%A) - %H:%M:%S',
-                    filename='kfol_log_' + ID + '.log',
-                    filemode='a')
+                    # filename='kfol_log_' + ID + '.log',
+                    # filemode='a'
+                    )
 
 
 class KfOl(object):
@@ -33,6 +35,7 @@ class KfOl(object):
         self.id = id
         self.password = password
         self.cookies = cookies
+        self.safeid = {'safeid': ''}
 
         self.login_header = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -84,15 +87,26 @@ class KfOl(object):
             "X-Requested-With": "XMLHttpRequest"
         }
 
+    def get_safeid(self, soup):
+        script = str(soup.find_all('script'))
+        pattern = re.compile('safeid=[a-zA-Z0-9]+')
+        sid = re.search(pattern, script).group()
+        sid = sid.split('=')
+        self.safeid['safeid'] = sid[1]
+        print('safeid = %s' % sid[1])
+
     def login(self):
         r = requests.post(self.url_login, data=self.login_data, headers=self.login_header, cookies=self.cookies)
         self.cookies = r.cookies
 
     def kfol(self):
-        click_data = {'safeid': '1b0e763'}
-        r = requests.post(self.url_kfol_click, data=click_data, headers=self.kfol_header, cookies=self.cookies)
+
+        r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
+        logging.info('attack0')
         while r.text:
-            r = requests.post(self.url_kfol_click, data=click_data, headers=self.kfol_header, cookies=self.cookies)
+            time.sleep(1.5)
+            logging.info('attack!')
+            r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
         logging.info('kfol end')
 
     def is_login(self, soup):
@@ -131,16 +145,21 @@ class KfOl(object):
         # get page of kfol
         r = requests.get(self.url_kfol, headers=self.get_header, cookies=self.cookies)
         self.update_cookies(r.cookies)
+
+        # get_safeid
+        soup = BeautifulSoup(r.text)
+        self.get_safeid(soup)
+
         logging.info('kfol start')
         self.kfol()
 
         # get page of daily-reward
-        r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
-        # click needed!
+        r = requests.get(self.url_growup, data=self.safeid, headers=self.get_header, cookies=self.cookies)
+        logging.info('reward end')
 
         # save cookies
         json_cookies = requests.utils.dict_from_cookiejar(self.cookies)
-        with open('kfol_cookies_' + self.id + '.json', 'r') as f:
+        with open('kfol_cookies_' + self.id + '.json', 'w') as f:
             f.write(json.dumps(json_cookies))
         logging.info('cookies saved')
 
