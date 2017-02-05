@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# - coding: utf-8 -*-
 # python 3.5
 # first spider
 
@@ -12,10 +12,10 @@ import re
 
 ###################################
 # parameter
-id_list = {'home':{'info_file_name':'info_home.md', 'save_name':'Home', 'subpath':'homeraji/'},
-        'otomain':{'info_file_name':'info_otomain.md', 'save_name':'Otomain', 'subpath':'otomain/'}}
+id_list = {'home':{'info_file_name':'info_home.txt', 'save_name':'Home-', 'subpath':'homeraji/'},
+        'otomain':{'info_file_name':'info_otomain.txt', 'save_name':'Otomain-', 'subpath':'otomain/'}}
 
-save_path = './test/'
+save_path = '---------'
 log_file_name = 'osen_spider.log'
 
 query_json = 'http://www.onsen.ag/data/api/getMovieInfo/'
@@ -33,6 +33,19 @@ time_ = time.strftime("%Y/%m/%d (%A) - %H:%M:%S")
 
 # local: 'log_file_name.log', 'flag.json'
 # path: 'info.txt', 'xxx.mp3'
+
+try:
+    os.makedirs(save_path)
+    logging.warning('makedir %s' % save_path)
+except FileExistsError:
+    pass
+
+for i in id_list:
+    try:
+        os.makedirs(save_path + id_list[i]['subpath'])
+        logging.warning('makedir %s' % save_path + id_list[i]['subpath'])
+    except FileExistsError:
+        pass
 
 # log (if not, build one)
 if not os.path.exists(log_file_name):
@@ -119,22 +132,17 @@ class Spider(object):
             f.write(json_flag)
 
     def run(self):
-        while True:
-            logging.debug('awake')
+        logging.info('scan')
+        for bangumi_id in self.id_list:
+            info = self.get_info(bangumi_id)
+            if flag[bangumi_id]['count'] != info['count']:
+                logging.warning('%s has update!' % info['title'])
+                audio = urllib3.PoolManager().request('GET', info['download']).data
+                save_name = self.id_list[bangumi_id]['subpath'] + self.id_list[bangumi_id]['save_name'] + info['count'] + '.mp3'
+                self.save_files(file_data=audio, file_name=save_name)
+                self.add_info(info=info, bangumi_id=bangumi_id)
+                print("add new file: %s at %s" % (save_name, time.strftime("%Y/%m/%d (%A) - %H:%M:%S")))
 
-            if time.strftime("%H") == '18':
-                logging.info('scan')
-
-                for bangumi_id in self.id_list:
-                    info = self.get_info(bangumi_id)
-                    if flag[bangumi_id]['count'] != info['count']:
-                        audio = urllib3.PoolManager().request('GET', info['download']).data
-                        save_name = self.id_list[bangumi_id]['subpath'] + self.id_list[bangumi_id]['save_name'] + info['count'] + '.mp3'
-                        self.save_files(file_data=audio, file_name=save_name)
-                        self.add_info(info=info, bangumi_id=bangumi_id)
-                        print("add new file: %s at %s" % (save_name, time.strftime("%Y/%m/%d (%A) - %H:%M:%S")))
-
-            time.sleep(60 * 60)
 
 # Spider END
 ###################################
