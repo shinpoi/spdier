@@ -51,9 +51,6 @@ for i in id_list:
 if not os.path.exists(log_file_name):
     with open(log_file_name, 'w') as f:
         f.write('#### log of onsen spider ####\nbuild in %s \n\n' % time_)
-else:
-    with open(log_file_name, 'a') as f:
-        f.write('\n#### restart at %s\n\n' % time_)
 
 # info (if not, build one)
 for i in id_list:
@@ -109,7 +106,7 @@ class Spider(object):
             info['guest'] = soup.find(id=bangumi_id)['data-guest']
         except KeyError as e:
             info['guest'] = 'No Data'
-            logging.warning('No guest data in %s - %s' % (bangumi_id, info['count']))
+            #logging.warning('No guest data in %s - %s' % (bangumi_id, info['count']))
         return info
 
     def save_files(self, file_data, file_name):
