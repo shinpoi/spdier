@@ -1,3 +1,8 @@
+# - coding: utf-8 -*-
+# python 3.5
+# first spider
+
+import os
 import requests
 import json
 import time
@@ -8,9 +13,10 @@ from bs4 import BeautifulSoup
 
 ID = "---------"
 PW = "---------"
+pwd = os.path.dirname(__file__) + '/'
 
 try:
-    with open('kfol_cookies_' + ID + '.json', 'r') as f:
+    with open(pwd + 'kfol_cookies_' + ID + '.json', 'r') as f:
         COOKIES = requests.utils.cookiejar_from_dict(json.loads(f.read()))
 except IOError:
     COOKIES = None
@@ -18,19 +24,19 @@ except IOError:
 logging.basicConfig(level=logging.INFO,
                     format='[%(levelname)s]   \t %(asctime)s \t%(message)s\t',
                     datefmt='%Y/%m/%d (%A) - %H:%M:%S',
-                    # filename='kfol_log_' + ID + '.log',
-                    # filemode='a'
+                    filename=pwd + 'kfol_log_' + ID + '.log',
+                    filemode='a'
                     )
 
 
 class KfOl(object):
-
     def __init__(self, id, password, cookies):
         self.url_login = 'http://bbs.2dkf.com/login.php'
         self.url_homepage = 'http://bbs.2dkf.com/index.php'
         self.url_kfol = 'http://bbs.2dkf.com/kf_fw_ig_index.php'
         self.url_kfol_click = 'http://bbs.2dkf.com/kf_fw_ig_intel.php'
         self.url_growup = 'http://bbs.2dkf.com/kf_growup.php'
+        self.pwd = os.path.dirname(__file__) + '/'
 
         self.id = id
         self.password = password
@@ -71,7 +77,7 @@ class KfOl(object):
             "Host": "bbs.2dkf.com",
             "Upgrade-Insecure-Requests": "1",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36"
-            }
+        }
 
         self.kfol_header = {
             "Accept": "*/*",
@@ -93,7 +99,6 @@ class KfOl(object):
         sid = re.search(pattern, script).group()
         sid = sid.split('=')
         self.safeid['safeid'] = sid[1]
-        print('safeid = %s' % sid[1])
 
     def login(self):
         r = requests.post(self.url_login, data=self.login_data, headers=self.login_header, cookies=self.cookies)
@@ -154,12 +159,18 @@ class KfOl(object):
         self.kfol()
 
         # get page of daily-reward
-        r = requests.get(self.url_growup, data=self.safeid, headers=self.get_header, cookies=self.cookies)
+        r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
+        self.update_cookies(r.cookies)
+
+        reward_header = self.get_header
+        reward_data = self.safeid
+        reward_data['ok'] = '3'
+        r = requests.get(self.url_growup, data=reward_data, headers=reward_header, cookies=self.cookies)
         logging.info('reward end')
 
         # save cookies
         json_cookies = requests.utils.dict_from_cookiejar(self.cookies)
-        with open('kfol_cookies_' + self.id + '.json', 'w') as f:
+        with open(self.pwd + 'kfol_cookies_' + self.id + '.json', 'w') as f:
             f.write(json.dumps(json_cookies))
         logging.info('cookies saved')
 

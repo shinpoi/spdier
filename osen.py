@@ -10,13 +10,16 @@ from bs4 import BeautifulSoup
 import logging
 import re
 
+
 ###################################
 # parameter
+pwd = os.path.dirname(__file__) + '/'
+
 id_list = {'home':{'info_file_name':'info_home.txt', 'save_name':'Home-', 'subpath':'homeraji/'},
         'otomain':{'info_file_name':'info_otomain.txt', 'save_name':'Otomain-', 'subpath':'otomain/'}}
 
-save_path = '---------'
-log_file_name = 'osen_spider.log'
+save_path = '"---------"'
+log_file_name = pwd + 'osen_spider.log'
 
 query_json = 'http://www.onsen.ag/data/api/getMovieInfo/'
 url_homepage = 'http://www.onsen.ag/index.html?pid=home'
@@ -60,8 +63,8 @@ for i in id_list:
             f.write('#### onsen info ####\nbuild in %s \n\n' % time_)
 
 # flag (read flag.json, if not, flag -> None)
-if os.path.exists('./flag.json'):
-    with open('flag.json', 'r') as f:
+if os.path.exists(pwd + 'flag.json'):
+    with open(pwd + 'flag.json', 'r') as f:
         flag = json.loads(f.read())
 else:
     flag = {}
@@ -79,6 +82,7 @@ class Spider(object):
         self.query_json = query_json
         self.url_homepage = url_homepage
         self.flag = flag
+        self.pwd = os.path.dirname(__file__) + '/'
 
     @staticmethod
     def get_json(url):
@@ -125,11 +129,12 @@ class Spider(object):
         # update flag.json
         self.flag[bangumi_id]['count'] = info['count']
         json_flag = json.dumps(flag)
-        with open('flag.json', 'w') as f:
+        with open(self.pwd + 'flag.json', 'w') as f:
             f.write(json_flag)
 
     def run(self):
         logging.info('scan')
+        print('scanning! ')
         for bangumi_id in self.id_list:
             info = self.get_info(bangumi_id)
             if flag[bangumi_id]['count'] != info['count']:
