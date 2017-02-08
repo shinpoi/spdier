@@ -1,26 +1,39 @@
 # spdier
 net-spider write by Python 3.5  
-just for fun
+just for fun ^_^
 
 * need library:  
-[urllib3](https://urllib3.readthedocs.io/en/latest/): `pip3 install urllib3 `  
+[urllib3](https://urllib3.readthedocs.io/en/latest/): `pip3 install urllib3`  
 [BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/): `pip3 install beautifulsoup4 html5lib`  
 (If you used CentOS and want use lxml, maybe you should `yum install libxml2-devel libxslt-devel`, `pip3 install lxml`)  
 
 ***
 
->**osen.py**  
+## osen.py
 
-Spider for [Osen](http://www.onsen.ag/program/home/)  
-Download "ほめらじ" every issue.  
+Spider for net-drama [Osen](http://www.onsen.ag/program/home/)  
 
-Awake every 60min, and check time of system.  
-If Hour == 23, then gather information form homepage of Osen.  
-If find new issue, download the audio file to `save_path ` and update `info_file_name`  
-`(Ok, of course I konw homeraji will be updated at every thursday ...`
+When runing this program, it would check the count of issue in `id_list`, if has a new issue, program wil download the new audio file and update info file.
 
+* Log file would be builed on the same path of `osen.py`.  
+* Edit `save_path` to change where the audio files and infos file are saved in.  
+* **Need combine with cron tools like [crontab](http://www.computerhope.com/unix/ucrontab.htm) to use**
+
+example:  
+`crontab -e`  
+then:  
+`30 1 * * * <absolute path of your python3> <absolute path of osen.py>`  
 
 ***
 *Thanks: Thanks for Guo of YTS for his technical support!*  
 
-P.S.不要吐槽我丑陋的英语……当然，有错误请务必指出（众: 哪都是错
+***
+
+## kfol.py
+* need library:  
+[requests](http://docs.python-requests.org/en/master/): `pip3 install urllib3`
+
+Play kfol and get dayly-reward automaticly. (But need distributing status point by yourself.)  
+Just edit `ID = '...'` and `PW = '...'`
+
+* **Need combine with cron tools like [crontab](http://www.computerhope.com/unix/ucrontab.htm) to auto play everday.**
