@@ -31,6 +31,7 @@ logging.basicConfig(level=logging.INFO,
 
 class KfOl(object):
     def __init__(self, id, password, cookies):
+        self.url = 'http://bbs.2dkf.com/'
         self.url_login = 'http://bbs.2dkf.com/login.php'
         self.url_homepage = 'http://bbs.2dkf.com/index.php'
         self.url_kfol = 'http://bbs.2dkf.com/kf_fw_ig_index.php'
@@ -100,12 +101,24 @@ class KfOl(object):
         sid = sid.split('=')
         self.safeid['safeid'] = sid[1]
 
+    def update_cookies(self, new_cookies):
+        origin = requests.utils.dict_from_cookiejar(self.cookies)
+        neo = requests.utils.dict_from_cookiejar(new_cookies)
+        for i in neo:
+            origin[i] = neo[i]
+        self.cookies = requests.utils.cookiejar_from_dict(origin)
+        logging.info('update cookies')
+
+    def is_login(self, soup):
+        soup = soup.find(class_="topright")
+        soup = soup.find('a')
+        return soup.text == self.id
+
     def login(self):
         r = requests.post(self.url_login, data=self.login_data, headers=self.login_header, cookies=self.cookies)
         self.cookies = r.cookies
 
     def kfol(self):
-
         r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
         logging.info('attack0')
         while r.text:
@@ -114,18 +127,17 @@ class KfOl(object):
             r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
         logging.info('kfol end')
 
-    def is_login(self, soup):
-        soup = soup.find(class_="topright")
-        soup = soup.find('a')
-        return soup.text == self.id
+    def get_reward(self):
+        r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
+        self.update_cookies(r.cookies)
 
-    def update_cookies(self, new_cookies):
-        origin = requests.utils.dict_from_cookiejar(self.cookies)
-        neo = requests.utils.dict_from_cookiejar(new_cookies)
-        for i in neo:
-            origin[i] = neo[i]
-        self.cookies = requests.utils.cookiejar_from_dict(origin)
-        logging.info('update cookies')
+        soup = BeautifulSoup(r.text, 'html5lib')
+        a = soup.find(target='_self')
+        try:
+            url_reward = self.url + a['href']
+            requests.get(url_reward, headers=self.get_header, cookies=self.cookies)
+        except:
+            pass
 
     def run(self):
         # get homepage and check if login
@@ -159,14 +171,7 @@ class KfOl(object):
         self.kfol()
 
         # get page of daily-reward
-        r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
-        self.update_cookies(r.cookies)
-
-        reward_header = self.get_header
-        reward_data = self.safeid
-        reward_data['ok'] = '3'
-        r = requests.get(self.url_growup, data=reward_data, headers=reward_header, cookies=self.cookies)
-        logging.info('reward end')
+        self.get_reward()
 
         # save cookies
         json_cookies = requests.utils.dict_from_cookiejar(self.cookies)
