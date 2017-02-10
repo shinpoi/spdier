@@ -129,10 +129,9 @@ class KfOl(object):
 
     def get_reward(self):
         r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
-        self.update_cookies(r.cookies)
-
         soup = BeautifulSoup(r.text, 'html5lib')
         a = soup.find(target='_self')
+        time.sleep(1.5)
         try:
             url_reward = self.url + a['href']
             requests.get(url_reward, headers=self.get_header, cookies=self.cookies)
