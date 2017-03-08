@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# python 2.7
+# python 3.5
 
 import os
 import requests
@@ -13,14 +13,14 @@ import sys
 # import setting
 
 # Set encode: utf-8
-reload(sys)
-sys.setdefaultencoding('utf8')
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 # Parameter
 ID = "Your ID"
 PW = "Your Password"
 
-SAVE_PATH = os.path.dirname(__file__) + '/'
+SAVE_PATH = './'
 LOG_LEVEL = logging.INFO
 LOG_TO_CONSOLE = True
 
