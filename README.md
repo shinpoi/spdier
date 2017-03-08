@@ -36,3 +36,35 @@ Play kfol and get dayly-reward automaticly. (But need distributing status point 
 Just edit `ID = '...'` and `PW = '...'`
 
 * **Need combine with cron tools like [crontab](http://www.computerhope.com/unix/ucrontab.htm) to auto play everday.**
+
+***
+
+## pixiv_crawler.py
+
+* If you want use this script at *Python2.7*, just do:
+```
+- #reload(sys)
+- #sys.setdefaultencoding('utf8')
+
++ reload(sys)
++ sys.setdefaultencoding('utf8')
+```
+
+Chaneg `ID = "Your ID"`and `PW = "Your Password"` to your own account & password.
+
+**Images, logs and cookies will be saved in the same directory of pixiv_crawler.py.**  
+Edit `SAVE_PATH = './'` to change it.
+
+* Method of `Crawler.craw()` just a test. **Expand it by what your need.**  
+  * What `Crawler.craw()` do ?  
+    1.Download the first 200 rank of daily ranking. If a image-id has more than 10 pictures, it will be ignored.  
+    2.Download all of works of user '76266' (ポコさん).  
+    3.Download all of bookmarks of me (1941321).  
+    
+* Now this crawler has two main method:  
+  * **def scan_ranking(mode=**'daily', **content=**'illust', **page=**4**)**:  
+    `mode:` 'daily', 'weekly', 'monthly', 'rookie', 'original', 'male', 'female'.  
+    `page:` 50 images per page.  
+  * **def scan_artist(uid**, **class_=**'works'**)**:  
+    `uid`: artist's uid.  
+    `class_=`: 'works' or 'bookmarks'  
