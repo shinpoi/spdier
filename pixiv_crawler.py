@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# python 3.5
+# python 2.7
 
 import os
 import requests
@@ -10,9 +10,10 @@ import logging
 import re
 from bs4 import BeautifulSoup
 import sys
+import random
 # import setting
 
-# Set encode: utf-8
+# Set encode: utf-8 // If used Python3, command next two col.
 # reload(sys)
 # sys.setdefaultencoding('utf8')
 
@@ -20,7 +21,7 @@ import sys
 ID = "Your ID"
 PW = "Your Password"
 
-SAVE_PATH = './'
+SAVE_PATH = sys.path[0] + '/'
 LOG_LEVEL = logging.INFO
 LOG_TO_CONSOLE = True
 
@@ -30,7 +31,7 @@ try:
 except OSError:
     pass
 
-logging.basicConfig(level=LOG_LEVEL, # level=setting.LOG_LEVEL,
+logging.basicConfig(level=LOG_LEVEL,  # level=setting.LOG_LEVEL,
                     format='[%(levelname)s]   \t %(asctime)s \t%(message)s\t',
                     datefmt='%Y/%m/%d (%A) - %H:%M:%S',
                     filename=SAVE_PATH + 'log/' + 'PixivCrawler_' + time.strftime('%Y-%m-%d_%H-%M') + '.log',
@@ -48,7 +49,7 @@ if LOG_TO_CONSOLE:
 
 # Yesterday
 today = datetime.date.today()
-if int(time.strftime('%H')) < 10:
+if int(time.strftime('%H')) < 12:
     oneday = datetime.timedelta(days=2)
 else:
     oneday = datetime.timedelta(days=1)
@@ -314,8 +315,8 @@ class Crawler(object):
         except ValueError:
             logging.error('Score image(id=%s) failed (didn\'t get response)' % img_id)
 
-    # Collect image's id-list of ranking. | Success: id-list ;
-    def scan_ranking(self, mode='daily', content='illust', page=4, date=''):
+    # Add image-id of (daily) ranking into id-set. | Success: id-set ;
+    def scan_ranking(self, mode='daily', content='illust', page=4, date='', id_set=set()):
         if date:
             pass
         else:
@@ -329,25 +330,25 @@ class Crawler(object):
         headers['Host'] = self.domain
         r = requests.get(overview_url, headers=headers, cookies=self.cookies)
         tt = re.search(self.pattern_tt, r.text).group(1)
+        headers['Referer'] = overview_url
 
-        id_list = set()
         for i in range(page):
             para = 'mode=' + mode + '&content=' + content + '&date=' + date + '&p=' + str(i+1) + '&format=json&tt=' + tt
             json_url = self.ranking_page + para
             json_rank = json.loads(requests.get(json_url, headers=headers, cookies=self.cookies).text)
             try:
                 for img_json in json_rank['contents']:
-                    id_list.add(str(img_json['illust_id']))
+                    id_set.add(str(img_json['illust_id']))
                 time.sleep(0.5)
             except KeyError:
                 print(json_rank)
                 logging.error('Get json of page %s failed' % str(i+1))
 
         logging.info('End scan ranking.')
-        return id_list
+        return id_set
 
-    # Collect image's id-list of artist's works/bookmarks. | Success: id-list ;
-    def scan_artist(self, uid, class_='works'):
+    # Add artist's works/bookmarks image-id into id-set. | Success: id-set ;
+    def scan_artist(self, uid, class_='works', id_set=set()):
         logging.info('Start scan user(id=%s), scan_type is: %s.' % (uid, class_))
 
         if class_ == 'works':
@@ -376,29 +377,28 @@ class Crawler(object):
                 break
 
         logging.info('Has %s pages!' % new_max_page)
-        id_list = []
         for i in range(int(max_page)):
             url = page + uid + '&p=' + str(i+1)
             r = requests.get(url, headers=headers, cookies=self.cookies)
             soup = BeautifulSoup(r.text, 'lxml')
             tag_list = soup.find_all('img', class_='ui-scroll-view')
             for tag in tag_list:
-                id_list.append(tag['data-id'])
+                id_set.add(tag['data-id'])
             time.sleep(0.5)
 
         logging.info('End scan user')
-        return id_list
+        return id_set
 
-    def crawler(self, id_list, save_file):
+    def crawler(self, id_set, save_file):
         try:
             os.mkdir(save_file)
         except OSError:
             pass
 
         logging.info('Start for write image in %s' % save_file)
-        num = str(len(id_list))
+        num = str(len(id_set))
         n = 0
-        for img_id in id_list:
+        for img_id in id_set:
             n += 1
             logging.info("check image %s/%s" % (str(n), num))
             images_p = self.get_images_by_id(img_id)
@@ -408,32 +408,40 @@ class Crawler(object):
                     if self.classifiter(image[2]):
                         with open(save_file + image[0], 'wb') as f:
                             f.write(image[2])
-                            logging.info('wrote image: %s' % image[0])
+                            logging.debug('wrote image: %s' % image[0])
                     else:
                         logging.info('Ignored image: %s' % image[0])
-                time.sleep(0.5)
+                time.sleep(round((0.5+random.random())/2, 2))
+                # time.sleep(0.5)
             else:
                 logging.info('Ignored id: %s' % img_id)
         logging.info('End for write image in %s' % save_file)
 
-    def craw(self):
-        # check daily ranking (rank=200)
-        id_list = self.scan_ranking()
-        file_name = self.path + 'Daily_Rank_' + self.times + '_' + str(len(id_list)) + 'p/'
-        self.crawler(id_list=id_list, save_file=file_name)
+    def craw(self, id_set=set()):
+        # check daily ranking
+        date = self.times
+        id_set = self.scan_ranking(mode='daily', date=date, id_set=id_set)
+        file_name = self.path + 'Daily_Rank_' + 'None_time' + '_' + str(len(id_set)) + 'p/'
+        self.crawler(id_set=id_set, save_file=file_name)
 
-        # check works of artist (ポコ(id=76266))
-        id_list = self.scan_artist(uid='76266')
-        file_name = self.path + 'ポコ(76266)_works' + '_' + str(len(id_list)) + 'p/'
-        self.crawler(id_list=id_list, save_file=file_name)
+        # check works of artist
+        """
+        uid = '36'
+        id_set = self.scan_artist(uid=uid)
+        file_name = self.path + uid + '_works_' + str(len(id_set)) + 'p/'
+        self.crawler(id_set=id_set, save_file=file_name)
+        """
 
-        # check bookmarks of me (aqueous002(id=1941321))
-        id_list = self.scan_artist(uid='1941321', class_='bookmarks')
-        file_name = self.path + 'aqueous002(1941321)_bookmarks' + '_' + str(len(id_list)) + 'p/'
-        self.crawler(id_list=id_list, save_file=file_name)
+        # check bookmarks of user
+        """
+        uid = '1941321'
+        id_list = self.scan_artist(uid=uid, class_='bookmarks')
+        file_name = self.path + uid + '_bookmarks_' + str(len(id_list)) + 'p/'
+        self.crawler(id_set=id_list, save_file=file_name)
+        """
 
         self.check_cookies(self.cookies)
-
+        logging.info('Mission complete')
 
 c = Crawler(user=ID, pw=PW, date=DATE, save_path=SAVE_PATH)
 c.craw()
