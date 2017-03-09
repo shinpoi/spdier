@@ -41,6 +41,8 @@ Just edit `ID = '...'` and `PW = '...'`
 
 ## pixiv_crawler.py
 
+A web-crawler can scan and download image from [pixiv](http://www.pixiv.net).
+
 * If you want use this script at *Python2.7*, just do:
 ```
 - #reload(sys)
@@ -50,7 +52,7 @@ Just edit `ID = '...'` and `PW = '...'`
 + sys.setdefaultencoding('utf8')
 ```
 
-Chaneg `ID = "Your ID"`and `PW = "Your Password"` to your own account & password.
+Change `ID = "Your ID"`and `PW = "Your Password"` to your own account & password.
 
 **Images, logs and cookies will be saved in the same directory of pixiv_crawler.py.**  
 Edit `SAVE_PATH = './'` to change it.
@@ -58,7 +60,7 @@ Edit `SAVE_PATH = './'` to change it.
 * Method of `Crawler.craw()` just a test. **Expand it by what your need.**  
   * What `Crawler.craw()` do ?  
     1.Download the first 200 rank of daily ranking. If a image-id has more than 10 pictures, it will be ignored.  
-    2.Download all of works of user '76266' (ポコさん).  
+    2.Download all of works of user '76266'([ポコ](http://www.pixiv.net/member.php?id=76266)).  
     3.Download all of bookmarks of me (1941321).  
     
 * Now this crawler has two main method:  
