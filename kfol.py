@@ -109,9 +109,8 @@ class KfOl(object):
         logging.info('update cookies')
 
     def is_login(self, soup):
-        soup = soup.find(class_="topright")
-        soup = soup.find('a')
-        return soup.text == self.id
+        soup = soup.find(class_='topmenu')
+        return self.id in soup.text
 
     def login(self):
         r = requests.post(self.url_login, data=self.login_data, headers=self.login_header, cookies=self.cookies)
@@ -128,7 +127,7 @@ class KfOl(object):
 
     def get_reward(self):
         r = requests.get(self.url_growup, headers=self.get_header, cookies=self.cookies)
-        soup = BeautifulSoup(r.text, 'html5lib')
+        soup = BeautifulSoup(r.text, 'lxml')
         a = soup.find(target='_self')
         time.sleep(1.5)
         try:
@@ -140,7 +139,7 @@ class KfOl(object):
     def run(self):
         # get homepage and check if login
         r = requests.get(self.url_homepage, headers=self.get_header, cookies=self.cookies)
-        soup = BeautifulSoup(r.text, 'html5lib')
+        soup = BeautifulSoup(r.text, 'lxml')
 
         if self.is_login(soup):
             logging.info('success login by local-cookies!')
@@ -148,7 +147,7 @@ class KfOl(object):
             for i in range(3):
                 self.login()
                 r = requests.get(self.url_homepage, headers=self.get_header, cookies=self.cookies)
-                soup = BeautifulSoup(r.text, 'html5lib')
+                soup = BeautifulSoup(r.text, 'lxml')
 
                 if self.is_login(soup):
                     logging.info('success login by login.php!')
@@ -162,7 +161,7 @@ class KfOl(object):
         self.update_cookies(r.cookies)
 
         # get_safeid
-        soup = BeautifulSoup(r.text)
+        soup = BeautifulSoup(r.text, 'lxml')
         self.get_safeid(soup)
 
         logging.info('kfol start')
