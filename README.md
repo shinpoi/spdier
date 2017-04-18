@@ -5,7 +5,7 @@ just for fun ^_^
 * need library:  
 [urllib3](https://urllib3.readthedocs.io/en/latest/): `pip3 install urllib3`  
 [requests](http://docs.python-requests.org/en/master/): `pip3 install requests`  
-[BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/): `pip3 install beautifulsoup4 html5lib`  
+[BeautifulSoup4](https://www.crummy.com/software/BeautifulSoup/bs4/doc/): `pip3 install beautifulsoup4 html5lib`  
 [lxml](http://lxml.de/): `pip3 install lxml`
 
 ***
