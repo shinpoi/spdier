@@ -16,7 +16,8 @@ import re
 pwd = os.path.dirname(__file__) + '/'
 
 id_list = {'home':{'info_file_name':'info_home.txt', 'save_name':'Home-', 'subpath':'homeraji/'},
-        'otomain':{'info_file_name':'info_otomain.txt', 'save_name':'Otomain-', 'subpath':'otomain/'}}
+        'otomain':{'info_file_name':'info_otomain.txt', 'save_name':'Otomain-', 'subpath':'otomain/'},
+		'homeomake':{'info_file_name':'', 'save_name':'Homeomake-', 'subpath':'homeraji_omake/'}}
 
 save_path = '"---------"'
 log_file_name = pwd + 'osen_spider.log'
@@ -71,6 +72,14 @@ else:
     for x in id_list:
         flag[x] = {'count': None}
 
+# check flag:
+bangumi = [i for i in id_list.keys()]
+for i in bangumi:
+	try:
+		flag[bangumi]['count']
+	except KeyError:
+		flag[bangumi]['count'] = None
+
 ###################################
 # Spider
 
@@ -120,9 +129,10 @@ class Spider(object):
 
     def add_info(self, info, bangumi_id):
         file_name = self.id_list[bangumi_id]['info_file_name']
-        message = "%s 第%s回 -- ゲスト:%s アップデート:%s \n" % (info['title'], info['count'], info['guest'], info['date'])
-        with open(self.save_path + file_name, 'a') as f:
-            f.write(message)
+		if file_name:
+            message = "%s 第%s回 -- ゲスト:%s アップデート:%s \n" % (info['title'], info['count'], info['guest'], info['date'])
+            with open(self.save_path + file_name, 'a') as f:
+                f.write(message)
 
         logging.warning('!!Write info %s - %s' % (bangumi_id, info['count']))
 
