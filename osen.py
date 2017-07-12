@@ -76,9 +76,9 @@ else:
 bangumi = [i for i in id_list.keys()]
 for i in bangumi:
 	try:
-		flag[bangumi]['count']
+		flag[i]['count']
 	except KeyError:
-		flag[bangumi]['count'] = None
+		flag[i]['count'] = None
 
 ###################################
 # Spider
@@ -117,8 +117,10 @@ class Spider(object):
         soup = BeautifulSoup(html.data, 'html5lib')
         try:
             info['guest'] = soup.find(id=bangumi_id)['data-guest']
-        except KeyError as e:
+        except KeyError:
             info['guest'] = 'No Data'
+	except TypeError:
+	    info['guest'] = 'No Data'
             #logging.warning('No guest data in %s - %s' % (bangumi_id, info['count']))
         return info
 
