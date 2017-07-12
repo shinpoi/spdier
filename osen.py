@@ -75,10 +75,10 @@ else:
 # check flag:
 bangumi = [i for i in id_list.keys()]
 for i in bangumi:
-	try:
-		flag[i]['count']
-	except KeyError:
-		flag[i]['count'] = None
+    try:
+        flag[i]['count']
+    except KeyError:
+        flag[i]['count'] = None
 
 ###################################
 # Spider
@@ -131,7 +131,7 @@ class Spider(object):
 
     def add_info(self, info, bangumi_id):
         file_name = self.id_list[bangumi_id]['info_file_name']
-		if file_name:
+            if file_name:
             message = "%s 第%s回 -- ゲスト:%s アップデート:%s \n" % (info['title'], info['count'], info['guest'], info['date'])
             with open(self.save_path + file_name, 'a') as f:
                 f.write(message)
