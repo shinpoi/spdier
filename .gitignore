@@ -2,3 +2,10 @@
 *.txt
 *.json
 *.log
+
+# image
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
