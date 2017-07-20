@@ -95,7 +95,7 @@ class Spider(object):
             expand = src_url[-4:]
             if not expand.startswith('.'):
                 expand = '.' + expand
-            data = requests.get('http:' + src_url, headers=header, cookies=self.cookies, timeout=60)
+            data = requests.get('http:' + src_url, headers=header, timeout=60)
             if data.status_code == 200:
                 logging.debug("save image: %s" % name+expand)
                 with open(self.save_path + name + expand, 'wb') as f:
@@ -106,7 +106,7 @@ class Spider(object):
     def run(self):
         self.get_cookies()
         max_page = self.get_max_page()
-        for i in range(max_page):
+        for i in range(336, max_page):
             logging.info('start scan page: %d' % i)
             res = requests.get(self.url_base + 'page=%d' % i, headers=self.header_base, cookies=self.cookies)
             self.update_cookies(res.cookies)

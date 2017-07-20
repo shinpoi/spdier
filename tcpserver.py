@@ -23,9 +23,13 @@ s.listen(5)
 print('Waiting for connection...')
 
 while True:
-    sock, addr = s.accept()
-    t = threading.Thread(target=tcplink, args=(sock, addr))
-    t.start()
+    try:
+        sock, addr = s.accept()
+        t = threading.Thread(target=tcplink, args=(sock, addr))
+        t.start()
+    except KeyboardInterrupt:
+        t.stop()
+        raise KeyboardInterrupt
 
 
 
