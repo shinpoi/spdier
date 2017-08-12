@@ -36,6 +36,8 @@ class KfOl(object):
         self.url_kfol = 'http://bbs.2dkf.com/kf_fw_ig_index.php'
         self.url_kfol_click = 'http://bbs.2dkf.com/kf_fw_ig_intel.php'
         self.url_growup = 'http://bbs.2dkf.com/kf_growup.php'
+        self.url_use_item = 'http://bbs.2dkf.com/kf_fw_ig_mybpdt.php'
+        self.url_item = 'http://bbs.2dkf.com/kf_fw_ig_mybp.php'
         self.pwd = os.path.dirname(__file__) + '/'
 
         self.id = id
@@ -90,7 +92,7 @@ class KfOl(object):
             "Origin": "http://bbs.2dkf.com",
             "Referer": "http://bbs.2dkf.com/kf_fw_ig_index.php",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36",
-            "X-Requested-With": "XMLHttpRequest"
+            "X-Requested-With": "XMLHttpRequest"'http://bbs.2dkf.com/login.php'
         }
 
     def get_safeid(self, soup):
@@ -119,7 +121,7 @@ class KfOl(object):
     def kfol(self):
         r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
         logging.info('attack0')
-        while r.text:
+        while r.text and r.text != 'no':
             time.sleep(1.5)
             logging.info('attack!')
             r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
@@ -135,6 +137,61 @@ class KfOl(object):
             requests.get(url_reward, headers=self.get_header, cookies=self.cookies)
         except:
             pass
+
+    def open_box(self):
+        logging.info("start open box")
+        safeid = self.safeid['safeid']
+        for i in range(1, 5):
+            time.sleep(1.5)
+            data = {'do': 3, 'id': i, 'safeid': safeid}
+            logging.debug("start open box, id=%d" % i)
+            for j in range(150):
+                time.sleep(1.5)
+                r = requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
+                print(r.text)
+                if r.text == '盒子不足，请刷新查看最新数目。':
+                    break
+
+    def smelt_weapon(self):
+        logging.info("start smelt weapon")
+        legend = 0
+        safeid = self.safeid['safeid']
+        p = re.compile('wp_([0-9]+)')
+        for i in range(5):
+            time.sleep(1.5)
+            r = requests.get(self.url_item, headers=self.get_header, cookies=self.cookies)
+            soup = BeautifulSoup(r.text, 'lxml')
+            table = soup.find(class_='kf_fw_ig4')
+            weapons = table.find_all(id=p)
+            for weapon in weapons:
+                time.sleep(1.5)
+                if '传奇的' in weapon.parent.text:
+                    legend = 1
+                    continue
+                else:
+                    id_ = p.match(weapon['id']).groups()[0]
+                    data = {'do': 5, 'id': id_, 'safeid': safeid}
+                    requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
+            if legend:
+                break
+
+    def use_item(self):
+        logging.info("start use items")
+        safeid = self.safeid['safeid']
+        p = re.compile('wp_([0-9]+)')
+        for i in range(5):
+            time.sleep(1.5)
+            r = requests.get(self.url_item, headers=self.get_header, cookies=self.cookies)
+            soup = BeautifulSoup(r.text, 'lxml')
+            table = soup.find_all(class_='kf_fw_ig1')[-1]
+            items = table.find_all(id=p)
+            if not items:
+                break
+            for item in items:
+                time.sleep(1.5)
+                id_ = p.match(item['id']).groups()[0]
+                data = {'do': 1, 'id': id_, 'safeid': safeid}
+                requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
 
     def run(self):
         # get homepage and check if login
@@ -164,8 +221,12 @@ class KfOl(object):
         soup = BeautifulSoup(r.text, 'lxml')
         self.get_safeid(soup)
 
+        # start kfol
         logging.info('kfol start')
         self.kfol()
+        self.open_box()
+        self.smelt_weapon()
+        self.use_item()
 
         # get page of daily-reward
         self.get_reward()

@@ -106,7 +106,7 @@ class Spider(object):
     def run(self):
         self.get_cookies()
         max_page = self.get_max_page()
-        for i in range(336, max_page):
+        for i in range(1, max_page):
             logging.info('start scan page: %d' % i)
             res = requests.get(self.url_base + 'page=%d' % i, headers=self.header_base, cookies=self.cookies)
             self.update_cookies(res.cookies)
