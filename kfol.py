@@ -44,6 +44,8 @@ class KfOl(object):
         self.password = password
         self.cookies = cookies
         self.safeid = {'safeid': ''}
+        self.item_limit = {"蕾米莉亚同人漫画": 50, "十六夜同人漫画": 50, "档案室钥匙": 30, "傲娇LOLI娇蛮音CD": 30, "消逝之药": 10, "整形优惠卷": 10}
+        self.item = {"蕾米莉亚同人漫画": 50, "十六夜同人漫画": 50, "档案室钥匙": 30, "傲娇LOLI娇蛮音CD": 30, "消逝之药": 10, "整形优惠卷": 10}
 
         self.login_header = {
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
@@ -167,8 +169,9 @@ class KfOl(object):
                 time.sleep(1.5)
                 if '传奇的' in weapon.parent.text:
                     legend = 1
-                    continue
+                    # continue
                 else:
+                    # smelt weapons
                     id_ = p.match(weapon['id']).groups()[0]
                     data = {'do': 5, 'id': id_, 'safeid': safeid}
                     requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
@@ -190,8 +193,19 @@ class KfOl(object):
             for item in items:
                 time.sleep(1.5)
                 id_ = p.match(item['id']).groups()[0]
+                # sell item
                 data = {'do': 1, 'id': id_, 'safeid': safeid}
                 requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
+
+    def count_item(self):
+        r = requests.get(self.url_kfol, headers=self.get_header, cookies=self.cookies)
+        soup = BeautifulSoup(r.text)
+        table = soup.find(class_='kf_fw_ig3')
+        for item in self.item.keys():
+            p = re.compile(r"\[(.+)\]%s" % item)
+            td = table.find("input", value=p)
+            self.item[item] = int(p.match(td["value"]).groups()[0])
+            # print("%s: %d" % (item, self.item[item]))
 
     def run(self):
         # get homepage and check if login
@@ -225,8 +239,9 @@ class KfOl(object):
         logging.info('kfol start')
         self.kfol()
         self.open_box()
+        self.count_item()
         self.smelt_weapon()
-        self.use_item()
+        # self.use_item()
 
         # get page of daily-reward
         self.get_reward()
