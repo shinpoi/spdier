@@ -211,7 +211,7 @@ class KfOl(object):
 
     def count_item(self):
         r = requests.get(self.url_kfol, headers=self.get_header, cookies=self.cookies)
-        soup = BeautifulSoup(r.text)
+        soup = BeautifulSoup(r.text, 'lxml')
         table = soup.find(class_='kf_fw_ig3')
         for item in self.item.keys():
             p = re.compile(r"\[(.+)\]%s" % item)
