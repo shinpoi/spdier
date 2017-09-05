@@ -184,6 +184,7 @@ class KfOl(object):
         p = re.compile('wp_([0-9]+)')
         for i in range(5):
             time.sleep(1.5)
+            self.count_item()
             r = requests.get(self.url_item, headers=self.get_header, cookies=self.cookies)
             soup = BeautifulSoup(r.text, 'lxml')
             table = soup.find_all(class_='kf_fw_ig1')[-1]
@@ -193,9 +194,20 @@ class KfOl(object):
             for item in items:
                 time.sleep(1.5)
                 id_ = p.match(item['id']).groups()[0]
-                # sell item
-                data = {'do': 1, 'id': id_, 'safeid': safeid}
+                name = self.rec_item(item.text)
+                if self.item[name] >= self.item_limit[name]:
+                    # sell item
+                    data = {'do': 2, 'id': id_, 'safeid': safeid}
+                else:
+                    # use item
+                    data = {'do': 1, 'id': id_, 'safeid': safeid}
                 requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
+
+    def rec_item(self, text):
+        for name in self.item.keys():
+            if name in text:
+                return name
+        return None
 
     def count_item(self):
         r = requests.get(self.url_kfol, headers=self.get_header, cookies=self.cookies)
@@ -239,9 +251,8 @@ class KfOl(object):
         logging.info('kfol start')
         self.kfol()
         self.open_box()
-        self.count_item()
         self.smelt_weapon()
-        # self.use_item()
+        self.use_item()
 
         # get page of daily-reward
         self.get_reward()
