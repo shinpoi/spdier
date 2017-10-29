@@ -165,17 +165,17 @@ class KfOl(object):
             soup = BeautifulSoup(r.text, 'lxml')
             table = soup.find(class_='kf_fw_ig4')
             weapons = table.find_all(id=p)
+            n = 0
             for weapon in weapons:
                 time.sleep(1.5)
                 if '传奇的' in weapon.parent.text:
-                    legend = 1
-                    # continue
+                    n += 1
                 else:
                     # smelt weapons
                     id_ = p.match(weapon['id']).groups()[0]
                     data = {'do': 5, 'id': id_, 'safeid': safeid}
                     requests.post(self.url_use_item, headers=self.get_header, cookies=self.cookies, data=data)
-            if legend:
+            if n == len(weapons):
                 break
 
     def use_item(self):
