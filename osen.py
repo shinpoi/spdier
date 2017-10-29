@@ -111,7 +111,7 @@ class Spider(object):
 
     def add_info(self, info, bangumi_id, local_list):
         file_name = self.id_list[bangumi_id]['info_file_name']
-        local_list.append({'n':info['count'], 'd':['date'], 'g':['guest']})
+        local_list.append({'n':info['count'], 'd':info['date'], 'g':info['guest']})
         with open(self.save_path + file_name, 'w') as f:
             f.write(json.dumps(local_list))
         logging.warning('!!Write info %s - %s' % (bangumi_id, info['count']))
