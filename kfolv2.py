@@ -2,11 +2,11 @@
 # python 3.5
 
 import os
-import requests as re
+import requests
 import json
 import time
 import logging
-import re
+import re as re
 import pickle as pkl
 from bs4 import BeautifulSoup as bs
 
@@ -29,7 +29,7 @@ URL_LOGIN       = URL_ROOT + 'login.php'
 URL_HOMEPAGE    = URL_ROOT + 'index.php'
 URL_KFOL        = URL_ROOT + 'kf_fw_ig_index.php'
 URL_KFOL_CLICK  = URL_ROOT + 'kf_fw_ig_intel.php'
-URL_GROWUP      = URL_ROOT  +'kf_growup.php'
+URL_STATUS      = URL_ROOT  +'kf_growup.php'
 URL_USE_ITRM    = URL_ROOT + 'kf_fw_ig_mybpdt.php'
 URL_ITRM_LIST   = URL_ROOT + 'kf_fw_ig_mybp.php'
         
@@ -94,7 +94,7 @@ class User(object):
 
     # touch homepage to get login cookies.
     def touch(self):
-        r = re.get(URL_LOGIN)
+        r = requests.get(URL_LOGIN)
         if r.status_code != 200:
             logging.error("Touch loginPage failed.")
             raise KfolError
@@ -102,20 +102,25 @@ class User(object):
 
     # login and check isLogined.
     def login(self):
-        #requestDatas = {
-            "jumpurl": "index.php",
-            "step": "2",
-            "lgt": "1",
-            "hideid": "1",
-            "cktime": "31536000",
-            "pwuser": ID.encode('gbk'),
-            "pwpwd": PW,
-            "submit": "登陆".encode('gbk')
-        }
+        r = requests.get(URL_LOGIN, headers=defaultLoginHeader, cookies=self.cookies)
+        self.cookies.update(r.cookies)
+        
+        # parse content to get requestData
+        soup = bs(r.content, "lxml")
+        requestDatas = {}
+        for d in soup.findAll("input"):
+            try:
+                requestDatas[d["name"]] = d["value"]
+            except KeyError:
+                pass
+        for k in requestDatas:
+            requestDatas[k] = requestDatas[k].encode("gbk") 
 
-        ### parse page to get login value !
+        # set 
+        requestDatas["pwuser"] = ID.encode('gbk')
+        requestDatas["pwpwd"] = PW.encode('gbk')
 
-        r = re.post(URL_LOGIN, data=requestDatas, headers=defaultLoginHeader, cookies=self.cookies)
+        r = requests.post(URL_LOGIN, data=requestDatas, headers=defaultLoginHeader, cookies=self.cookies)
         
         if r.status_code != 200:
             logging.error("login failed.")
@@ -129,7 +134,7 @@ class User(object):
     
     # by check homeage if has ID. 
     def isLogined(self):
-        r = re.get(URL_HOMEPAGE, headers=defaultGetHeader, cookies=self.cookies)
+        r = requests.get(URL_HOMEPAGE, headers=defaultGetHeader, cookies=self.cookies)
         soup = bs(r.content).find(class_='topmenu')
         self.cookies.update(r.cookies)
         return (ID in soup.text)
@@ -141,11 +146,15 @@ class User(object):
 
     def loadUserStatus(self):
         pass
-        # 神秘系数， 神秘等级， 金钱， 经验，下一级经验
+        # 神秘系数， 神秘等级， 经验，下一级经验
+        r = requests.get(URL_STATUS, headers=defaultGetHeader, cookies=self.cookies)
+        # 金钱
+        r = requests.get(URL_HOMEPAGE, headers=defaultGetHeader, cookies=self.cookies)
 
     def loadKfolStatus(self):
         pass
         # 武器经验， 防具经验， 当前配点， 可用配点， 配点次数， 道具列表
+        r = requests.get(URL_KFOL, headers=defaultGetHeader, cookies=self.cookies)
 
     def loadItemsList(self):
         pass
