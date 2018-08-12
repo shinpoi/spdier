@@ -7,11 +7,9 @@ import json
 import time
 import logging
 import re
+from kfol_setting import ID, PW
 from bs4 import BeautifulSoup
 
-
-ID = "---------"
-PW = "---------"
 pwd = os.path.dirname(__file__) + '/'
 
 try:
@@ -27,17 +25,16 @@ logging.basicConfig(level=logging.INFO,
                     filemode='a'
                     )
 
-
 class KfOl(object):
     def __init__(self, id, password, cookies):
-        self.url = 'http://bbs.2dkf.com/'
-        self.url_login = 'http://bbs.2dkf.com/login.php'
-        self.url_homepage = 'http://bbs.2dkf.com/index.php'
-        self.url_kfol = 'http://bbs.2dkf.com/kf_fw_ig_index.php'
-        self.url_kfol_click = 'http://bbs.2dkf.com/kf_fw_ig_intel.php'
-        self.url_growup = 'http://bbs.2dkf.com/kf_growup.php'
-        self.url_use_item = 'http://bbs.2dkf.com/kf_fw_ig_mybpdt.php'
-        self.url_item = 'http://bbs.2dkf.com/kf_fw_ig_mybp.php'
+        self.url = 'https://bbs.2dkf.com/'
+        self.url_login = 'https://bbs.2dkf.com/login.php?'
+        self.url_homepage = 'https://bbs.2dkf.com/index.php'
+        self.url_kfol = 'https://bbs.2dkf.com/kf_fw_ig_index.php'
+        self.url_kfol_click = 'https://bbs.2dkf.com/kf_fw_ig_intel.php'
+        self.url_growup = 'https://bbs.2dkf.com/kf_growup.php'
+        self.url_use_item = 'https://bbs.2dkf.com/kf_fw_ig_mybpdt.php'
+        self.url_item = 'https://bbs.2dkf.com/kf_fw_ig_mybp.php'
         self.pwd = os.path.dirname(__file__) + '/'
 
         self.id = id
@@ -56,17 +53,18 @@ class KfOl(object):
             "Content-Length": "123",
             "Content-Type": "application/x-www-form-urlencoded",
             "Host": "bbs.2dkf.com",
-            "Origin": "http://bbs.2dkf.com",
-            "Referer": "http://bbs.2dkf.com/index.php",
+            "Origin": "https://bbs.2dkf.com",
+            "Referer": "https://bbs.2dkf.com/index.php",
             "Upgrade-Insecure-Requests": "1",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36"
         }
 
         self.login_data = {
-            "jumpurl": "index.php",
+            "forward": "",
+            "jumpurl": "https://bbs.2dkf.com/profile.php?action=favor",
             "step": "2",
             "lgt": "1",
-            "hideid": "1",
+            "hideid": "0",
             "cktime": "31536000",
             "pwuser": id.encode('gbk'),
             "pwpwd": password,
@@ -91,18 +89,17 @@ class KfOl(object):
             "Content-Length": "14",
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "Host": "bbs.2dkf.com",
-            "Origin": "http://bbs.2dkf.com",
-            "Referer": "http://bbs.2dkf.com/kf_fw_ig_index.php",
+            "Origin": "https://bbs.2dkf.com",
+            "Referer": "https://bbs.2dkf.com/kf_fw_ig_index.php",
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.84 Safari/537.36",
-            "X-Requested-With": "XMLHttpRequest"'http://bbs.2dkf.com/login.php'
+            "X-Requested-With": "XMLHttpRequest"'https://bbs.2dkf.com/login.php'
         }
 
     def get_safeid(self, soup):
-        script = str(soup.find_all('script'))
-        pattern = re.compile('safeid=[a-zA-Z0-9]+')
-        sid = re.search(pattern, script).group()
-        sid = sid.split('=')
-        self.safeid['safeid'] = sid[1]
+        htmltext = soup.text
+        pattern = re.compile('safeid=([a-zA-Z0-9]+)')
+        sid = pattern.search(htmltext).group(1)
+        self.safeid['safeid'] = sid
 
     def update_cookies(self, new_cookies):
         origin = requests.utils.dict_from_cookiejar(self.cookies)
@@ -113,12 +110,12 @@ class KfOl(object):
         logging.info('update cookies')
 
     def is_login(self, soup):
-        soup = soup.find(class_='topmenu')
+        # soup = soup.find(class_='topmenu')
         return self.id in soup.text
 
     def login(self):
         r = requests.post(self.url_login, data=self.login_data, headers=self.login_header, cookies=self.cookies)
-        self.cookies = r.cookies
+        self.update_cookies(r.cookies)
 
     def kfol(self):
         r = requests.post(self.url_kfol_click, data=self.safeid, headers=self.kfol_header, cookies=self.cookies)
@@ -222,13 +219,19 @@ class KfOl(object):
     def run(self):
         # get homepage and check if login
         r = requests.get(self.url_homepage, headers=self.get_header, cookies=self.cookies)
+        if self.cookies:
+            self.update_cookies(r.cookies)
+        else:
+            self.cookies = r.cookies
         soup = BeautifulSoup(r.text, 'lxml')
 
         if self.is_login(soup):
             logging.info('success login by local-cookies!')
         else:
             for i in range(3):
+                time.sleep(3)
                 self.login()
+                time.sleep(3)
                 r = requests.get(self.url_homepage, headers=self.get_header, cookies=self.cookies)
                 soup = BeautifulSoup(r.text, 'lxml')
 
@@ -244,7 +247,7 @@ class KfOl(object):
         self.update_cookies(r.cookies)
 
         # get_safeid
-        soup = BeautifulSoup(r.text, 'lxml')
+        soup = BeautifulSoup(r.content, 'lxml')
         self.get_safeid(soup)
 
         # start kfol
