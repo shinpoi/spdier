@@ -18,10 +18,13 @@ def tcplink(sock, addr):
     while True:
         data = sock.recv(4096)
         time.sleep(1)
-        if not data or data.decode('utf-8') == 'exit':
+        if not data or data == b'exit':
             break
         print("\n---------start---------")
-        print(data.decode('utf-8'))
+        try:
+            print(data.decode('utf-8'))
+        except UnicodeDecodeError:
+            print(str(data))
         print("----------end----------\n")
     sock.close()
     print('Connection from %s:%s closed.' % addr)
@@ -40,6 +43,3 @@ while True:
     except KeyboardInterrupt:
         t.stop()
         raise KeyboardInterrupt
-
-
-
