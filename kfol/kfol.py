@@ -122,7 +122,7 @@ class KFClient:
         # TODO: parse form instead fixed login data
         login_data = {
             "forward": "",
-            "jumpurl": "https://bbs.2dkf.com/profile.php?action=favor",
+            "jumpurl": "https://%s/profile.php?action=favor" % HOST,
             "step": "2",
             "lgt": "1",
             "hideid": "0",
@@ -137,7 +137,7 @@ class KFClient:
         count = 1
         while count < 5:
             res = self.session.post(ENDPOINT_LOGIN, data=login_data, headers=ex_header)
-            self.session.cookies.update(res.cookies)
+            self.session.cookies = res.cookies
             time.sleep(WAIT_SECONDS)
             if self.is_login():
                 return
