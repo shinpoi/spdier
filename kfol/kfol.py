@@ -17,10 +17,10 @@ PW = None
 
 
 PWD = os.path.abspath(sys.argv[0]).replace('/' + sys.argv[0], '')
-if not PWD:
-    PWD = '/tmp'
+# if not PWD:
+#    PWD = '/tmp'
 
-with open('kfol_user.json') as f:
+with open(PWD + '/kfol_user.json') as f:
     j = json.loads(f.read())
     ID = j['id']
     PW = j['pw']
