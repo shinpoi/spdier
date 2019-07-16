@@ -16,7 +16,8 @@ ID = None
 PW = None
 
 
-PWD = os.path.abspath(sys.argv[0]).replace('/' + sys.argv[0], '')
+PWD = os.path.abspath(sys.argv[0])
+PWD = re.compile('[^/]+\.py$').sub('', PWD)[:-1]
 # if not PWD:
 #    PWD = '/tmp'
 
