@@ -6,7 +6,6 @@ app = Flask(__name__)
 def echo_server(path):
     url = request.full_path
     method = request.method
-    url_args = request.args
     header = request.headers
     data = request.data.decode()
 
