@@ -1,9 +1,13 @@
 from flask import Flask, request
+from werkzeug.routing import Rule
 
 app = Flask(__name__)
-@app.route("/")
-@app.route("/<path:path>")
-def echo_server(path):
+
+app.url_map.add(Rule('/', endpoint='echo'))
+app.url_map.add(Rule('/<path>', endpoint='echo'))
+
+@app.endpoint('echo')
+def echo_server(**kwargs):
     url = request.full_path
     method = request.method
     header = request.headers
@@ -11,6 +15,7 @@ def echo_server(path):
 
 
     return f'''======
+Raw: {request}
 URL: {method} {url}
 --
 header:
